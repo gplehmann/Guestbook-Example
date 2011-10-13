@@ -75,6 +75,10 @@ class Guestbook(webapp.RequestHandler):
         greeting.put()
         self.redirect('/?' + urllib.urlencode({'guestbook_name': guestbook_name}))
 
+    def get(self):
+        """Redirect GET requests to the root URL."""
+        self.redirect('/')
+
 
 application = webapp.WSGIApplication(
                                      [('/', MainPage),
