@@ -1,0 +1,54 @@
+<html>
+    <body>
+        {% for puzzle in puzzles %}
+            <table>
+              <tr><th colspan="9">Solved <b>{{ puzzle.date }}</th></tr>
+              <tr>
+              {% for number in puzzle.row_1 %}
+                <td>{{ number }}</td>
+              {% endfor %}
+              </tr>
+              <tr>
+              {% for number in puzzle.row_2 %}
+                <td>{{ number }}</td>
+              {% endfor %}
+              </tr>
+              <tr>
+              {% for number in puzzle.row_3 %}
+                <td>{{ number }}</td>
+              {% endfor %}
+              </tr>
+              <tr>
+              {% for number in puzzle.row_4 %}
+                <td>{{ number }}</td>
+              {% endfor %}
+              </tr>
+              <tr>
+              {% for number in puzzle.row_5 %}
+                <td>{{ number }}</td>
+              {% endfor %}
+              </tr>
+              <tr>
+              {% for number in puzzle.row_6 %}
+                <td>{{ number }}</td>
+              {% endfor %}
+              </tr>
+              <tr>
+              {% for number in puzzle.row_7 %}
+                <td>{{ number }}</td>
+              {% endfor %}
+              </tr>
+              <tr>
+              {% for number in puzzle.row_8 %}
+                <td>{{ number }}</td>
+              {% endfor %}
+              </tr>
+              <tr>
+              {% for number in puzzle.row_9 %}
+                <td>{{ number }}</td>
+              {% endfor %}
+              </tr>
+            </table>
+        {% endfor %}
+    </body>
+</html>
