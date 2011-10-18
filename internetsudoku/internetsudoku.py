@@ -61,7 +61,7 @@ class Websudoku:
         self.difficulty = difficulty
         self.puzzle = self.sudoku_html_to_list(self.pull_sudoku())
     
-    def pull_sudoku(self)
+    def pull_sudoku(self):
         puzzle_page = urllib2.urlopen(self.URL + '?level=' + str(self.difficulty))
         puzzle_regex = re.compile('<TABLE.*?>(<TR>(<TD.*?><INPUT.*?></TD>){9}</TR>){9}</TABLE>', re.IGNORECASE)
         puzzle_HTML = ''
