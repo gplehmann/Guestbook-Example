@@ -116,11 +116,13 @@ class Websudoku:
 
 
     def store_puzzle(self, puzzle_name):
+        """Store this instance's puzzle in the datastore."""
         #Convert puzzle into nine 9-character strings for storage
         entity_row = []
         for row in self.puzzle:
             entity_row.append(str(row).strip('[],\' '))
 
+        #Convert the numeric difficulty to a string
         if self.difficulty == 1:
             str_difficulty = 'EASY'
         elif self.difficulty == 2:
@@ -132,7 +134,7 @@ class Websudoku:
         else:
             str_difficulty = 'UNKNOWN'
             
-        puzzle_entity = Puzzle(parent=puzzle_key(puzzle_name), difficulty=str_difficulty)
+        puzzle_entity = Puzzle(parent=puzzle_key(puzzle_name))
         puzzle_entity.row_1 = entity_row[0]
         puzzle_entity.row_2 = entity_row[1]
         puzzle_entity.row_3 = entity_row[2]
@@ -142,6 +144,7 @@ class Websudoku:
         puzzle_entity.row_7 = entity_row[6]
         puzzle_entity.row_8 = entity_row[7]
         puzzle_entity.row_9 = entity_row[8]
+        puzzle.difficulty = str_difficulty
         puzzle_entity.put()
 
 
