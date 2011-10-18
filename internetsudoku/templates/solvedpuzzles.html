@@ -2,7 +2,8 @@
     <body>
         {% for puzzle in puzzles %}
             <table>
-              <tr><th colspan="9">Solved <b>{{ puzzle.date }}</th></tr>
+              <tr><th colspan="9">Solved <b>{{ puzzle.date }}</b></th></tr>
+              <tr><th colspan="9">Difficulty: <b>{{ puzzle.difficulty }}</b></th></tr>
               <tr>
               {% for number in puzzle.row_1 %}
                 <td>{{ number }}</td>
