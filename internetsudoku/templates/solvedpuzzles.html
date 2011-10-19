@@ -1,55 +1,59 @@
 <html>
     <body>
+        <center>
+Latest (un)Solved Puzzles:
         {% for puzzle in puzzles %}
-            <table>
+            <table border="1" cellspacing="0">
               <tr><th colspan="9">Solved <b>{{ puzzle.date }}</b></th></tr>
               <tr><th colspan="9">Difficulty: <b>{{ puzzle.difficulty }}</b></th></tr>
               <tr>
               {% for number in puzzle.row_1 %}
-                <td>{{ number }}</td>
+                <td align="center">{{ number }}</td>
               {% endfor %}
               </tr>
               <tr>
               {% for number in puzzle.row_2 %}
-                <td>{{ number }}</td>
+                <td align="center">{{ number }}</td>
               {% endfor %}
               </tr>
               <tr>
               {% for number in puzzle.row_3 %}
-                <td>{{ number }}</td>
+                <td align="center">{{ number }}</td>
               {% endfor %}
               </tr>
               <tr>
               {% for number in puzzle.row_4 %}
-                <td>{{ number }}</td>
+                <td align="center">{{ number }}</td>
               {% endfor %}
               </tr>
               <tr>
               {% for number in puzzle.row_5 %}
-                <td>{{ number }}</td>
+                <td align="center">{{ number }}</td>
               {% endfor %}
               </tr>
               <tr>
               {% for number in puzzle.row_6 %}
-                <td>{{ number }}</td>
+                <td align="center">{{ number }}</td>
               {% endfor %}
               </tr>
               <tr>
               {% for number in puzzle.row_7 %}
-                <td>{{ number }}</td>
+                <td align="center">{{ number }}</td>
               {% endfor %}
               </tr>
               <tr>
               {% for number in puzzle.row_8 %}
-                <td>{{ number }}</td>
+                <td align="center">{{ number }}</td>
               {% endfor %}
               </tr>
               <tr>
               {% for number in puzzle.row_9 %}
-                <td>{{ number }}</td>
+                <td align="center">{{ number }}</td>
               {% endfor %}
               </tr>
             </table>
+          <br/>
         {% endfor %}
+        </center>
     </body>
 </html>

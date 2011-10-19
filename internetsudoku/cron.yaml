@@ -1,0 +1,4 @@
+cron:
+- description: hourly sudoku pull
+  url: /getpuzzle
+  schedule: every 1 hours

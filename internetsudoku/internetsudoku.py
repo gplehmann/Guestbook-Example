@@ -1,6 +1,10 @@
 import urllib2
 import re
 import datetime
+import random
+import os
+
+#import sudoku solving module
 
 from google.appengine.ext import db
 from google.appengine.ext import webapp
@@ -29,7 +33,6 @@ class Puzzle(db.Model):
 
 
 class PuzzleParseError(Exception): pass
-    """Raised if a parsed puzzle does not produce a valid 9x9 grid"""
 
 
 def puzzle_key(puzzle_name=None):
@@ -39,9 +42,8 @@ def puzzle_key(puzzle_name=None):
 
 class MainPage(webapp.RequestHandler):
     def get(self):
-        puzzle_name = self.request.get('puzzle_name')
         puzzles_query = Puzzle.all().ancestor(
-            puzzle_key(puzzle_name)).order('-date')
+            puzzle_key()).order('-date')
         puzzles = puzzles_query.fetch(3)
 
         template_values = {
@@ -51,7 +53,14 @@ class MainPage(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'templates/solvedpuzzles.html')
         self.response.out.write(template.render(path, template_values))
 
-#TODO: add a self parameter if this gets moved into a class
+
+class GetPuzzle(webapp.RequestHandler):
+    def get(self):
+        sudoku_puzzle = Websudoku(random.randint(1,4))
+        #invoke sudoku puzzle solver here
+        sudoku_puzzle.store_puzzle()
+
+
 class Websudoku:
     puzzle = []
     URL = ''
@@ -115,12 +124,15 @@ class Websudoku:
         return puzzle
 
 
-    def store_puzzle(self, puzzle_name):
+    def store_puzzle(self, puzzle_name=None):
         """Store this instance's puzzle in the datastore."""
         #Convert puzzle into nine 9-character strings for storage
         entity_row = []
         for row in self.puzzle:
-            entity_row.append(str(row).strip('[],\' '))
+            row_str = ''
+            for number in row:
+                row_str += str(number)
+            entity_row.append(str(row_str).strip("[],' "))
 
         #Convert the numeric difficulty to a string
         if self.difficulty == 1:
@@ -144,12 +156,13 @@ class Websudoku:
         puzzle_entity.row_7 = entity_row[6]
         puzzle_entity.row_8 = entity_row[7]
         puzzle_entity.row_9 = entity_row[8]
-        puzzle.difficulty = str_difficulty
+        puzzle_entity.difficulty = str_difficulty
         puzzle_entity.put()
 
 
 application = webapp.WSGIApplication(
-                                     [('/', MainPage)],
+                                     [('/', MainPage),
+                                      ('/getpuzzle', GetPuzzle)],
                                      debug=True)
 
 

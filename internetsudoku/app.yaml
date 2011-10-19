@@ -1,0 +1,12 @@
+application: internetsudoku
+version: 1
+runtime: python
+api_version: 1
+
+handlers:
+- url: /getpuzzle
+  script: internetsudoku.py
+  login: admin
+
+- url: /.*
+  script: internetsudoku.py
