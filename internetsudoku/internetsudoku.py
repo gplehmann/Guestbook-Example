@@ -6,6 +6,7 @@ import os
 
 #import sudoku solving module
 
+from google.appengine.api import memcache
 from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
@@ -43,9 +44,7 @@ def puzzle_key(puzzle_name=None):
 class MainPage(webapp.RequestHandler):
     """Displays the last three solved puzzles"""
     def get(self):
-        puzzles_query = Puzzle.all().ancestor(
-            puzzle_key()).order('-date')
-        puzzles = puzzles_query.fetch(3)
+        puzzles = self.__get_data()
 
         template_values = {
             'puzzles': puzzles,
@@ -54,13 +53,31 @@ class MainPage(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'templates/solvedpuzzles.html')
         self.response.out.write(template.render(path, template_values))
 
+    def __get_data(self):
+        """Get data from the memcache if present, otherwise pull it from the datastore and keep it in the
+        memcache for 10 minutes.
+        
+        """
+        puzzles = memcache.get("puzzles")
+        if puzzles:
+            return puzzles
+        else:
+            puzzles = Puzzle.all().ancestor(puzzle_key()).order('-date').fetch(3)
+            if not memcache.add("puzzles", puzzles, 600):
+                logging.error("Memcache set failed.")
+            return puzzles
+
 
 class GetPuzzle(webapp.RequestHandler):
     """Invoked by the cron job to pull (and eventually solve) new puzzles."""
     def get(self):
-        sudoku_puzzle = Websudoku(random.randint(1,4))
-        #invoke sudoku puzzle solver here
-        sudoku_puzzle.store_puzzle()
+        try:
+            sudoku_puzzle = Websudoku(random.randint(1,4))
+        except PuzzleParseError, e:
+            logging.error('Error parsing sudoku puzzle: \n' + str(e.args))
+        else:
+            #invoke sudoku puzzle solver here
+            sudoku_puzzle.store_puzzle()
 
 
 class Websudoku:
@@ -82,7 +99,11 @@ class Websudoku:
 
 
     def pull_sudoku(self):
-        """Pull a Websudoku puzzle from the URL with this instance's difficulty, returning the HTML."""
+        """Pull a Websudoku puzzle from the URL with this instance's difficulty, returning the HTML.
+
+        Raises PuzzleParseError if it is unable to match an HTML sudoku string in the format Websudoku uses.
+
+        """
         puzzle_page = urllib2.urlopen(self.URL + self.difficulty_level_str + str(self.difficulty))
         puzzle_regex = re.compile('<TABLE.*?>(<TR>(<TD.*?><INPUT.*?></TD>){9}</TR>){9}</TABLE>', re.IGNORECASE)
         puzzle_HTML = ''
@@ -99,7 +120,11 @@ class Websudoku:
 
 
     def sudoku_html_to_list(self, html_str):
-        """Convert sudoku puzzle from HTML to a list matrix and return the list."""
+        """Convert sudoku puzzle from HTML to a list matrix and return the list.
+
+        Raises PuzzleParseError if 81 cells are not parsed from the HTML.
+
+        """
         empty_regex = re.compile('<INPUT.*?onBlur.*?>', re.IGNORECASE)
         full_regex = re.compile('<INPUT.*?READONLY VALUE="(\d)".*?>', re.IGNORECASE)
 
