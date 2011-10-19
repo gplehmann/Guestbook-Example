@@ -3,6 +3,7 @@ import re
 import datetime
 import random
 import os
+import logging
 
 #import sudoku solving module
 
@@ -11,6 +12,7 @@ from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
+
 
 class Puzzle(db.Model):
     """A Sudoku puzzle entry with a URL, character representation, difficulty
@@ -44,14 +46,17 @@ def puzzle_key(puzzle_name=None):
 class MainPage(webapp.RequestHandler):
     """Displays the last three solved puzzles"""
     def get(self):
+        logging.info('Request for recently solved puzzles received.')
         puzzles = self.__get_data()
 
         template_values = {
             'puzzles': puzzles,
         }
 
+        logging.info('Sending puzzles to template for output.')
         path = os.path.join(os.path.dirname(__file__), 'templates/solvedpuzzles.html')
         self.response.out.write(template.render(path, template_values))
+        logging.info('Request processed.')
 
     def __get_data(self):
         """Get data from the memcache if present, otherwise pull it from the datastore and keep it in the
@@ -104,7 +109,9 @@ class Websudoku:
         Raises PuzzleParseError if it is unable to match an HTML sudoku string in the format Websudoku uses.
 
         """
-        puzzle_page = urllib2.urlopen(self.URL + self.difficulty_level_str + str(self.difficulty))
+        full_URL = self.URL + self.difficulty_level_str + str(self.difficulty)
+        puzzle_page = urllib2.urlopen(full_URL)
+        logging.info('Pulled HTML from ' + full_URL)
         puzzle_regex = re.compile('<TABLE.*?>(<TR>(<TD.*?><INPUT.*?></TD>){9}</TR>){9}</TABLE>', re.IGNORECASE)
         puzzle_HTML = ''
 
@@ -112,6 +119,7 @@ class Websudoku:
         for line in puzzle_page:
             if puzzle_regex.match(line):
                 puzzle_HTML = line.strip()
+                logging.info('HTML matched regex.')
                 break
 
         if puzzle_HTML == '':
@@ -125,6 +133,7 @@ class Websudoku:
         Raises PuzzleParseError if 81 cells are not parsed from the HTML.
 
         """
+        logging.info('Converting HTML to list matrix.')
         empty_regex = re.compile('<INPUT.*?onBlur.*?>', re.IGNORECASE)
         full_regex = re.compile('<INPUT.*?READONLY VALUE="(\d)".*?>', re.IGNORECASE)
 
@@ -170,6 +179,7 @@ class Websudoku:
         puzzle_name -- used to generate a key for the datastore (default None)
 
         """
+        logging.info('Storing puzzle in the datastore.')
         #Convert puzzle into nine 9-character strings for storage
         entity_row = []
         for row in self.puzzle:
@@ -211,6 +221,7 @@ application = webapp.WSGIApplication(
 
 
 def main():
+    logging.getLogger().setLevel(logging.DEBUG)
     run_wsgi_app(application)
 
 
