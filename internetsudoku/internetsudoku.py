@@ -41,6 +41,7 @@ def puzzle_key(puzzle_name=None):
 
 
 class MainPage(webapp.RequestHandler):
+    """Displays the last three solved puzzles"""
     def get(self):
         puzzles_query = Puzzle.all().ancestor(
             puzzle_key()).order('-date')
@@ -55,6 +56,7 @@ class MainPage(webapp.RequestHandler):
 
 
 class GetPuzzle(webapp.RequestHandler):
+    """Invoked by the cron job to pull (and eventually solve) new puzzles."""
     def get(self):
         sudoku_puzzle = Websudoku(random.randint(1,4))
         #invoke sudoku puzzle solver here
@@ -62,16 +64,26 @@ class GetPuzzle(webapp.RequestHandler):
 
 
 class Websudoku:
-    puzzle = []
-    URL = ''
-    difficulty = 1
-    def __init__(self, difficulty=1, URL='http://view.websudoku.com/'):
+    """A class to pull a sudoku puzzle from a URL and attempt to parse it as if it came from the Websudoku site."""
+    def __init__(self, difficulty=1, URL='http://view.websudoku.com/', difficulty_level_str='?level='):
+        """Initializes a Websudoku instance with a difficulty and URL, and pulls and parses HTML from the URL.
+
+        Keyword arguments:
+        difficulty -- an integer representation of the difficulty to use with the URL
+            1 = EASY, 2 = MEDIUM, 3 = HARD, 4 = EVIL (default 1)
+        URL -- The URL string to pull HTML from to parse for a sudoku puzzle (default http://view.websudoku.com/)
+        difficulty_level_str -- string to add to the URL for the GET request for the difficulty (default ?level=)
+
+        """
         self.URL = URL
         self.difficulty = difficulty
+        self.difficulty_level_str = difficulty_level_str
         self.puzzle = self.sudoku_html_to_list(self.pull_sudoku())
-    
+
+
     def pull_sudoku(self):
-        puzzle_page = urllib2.urlopen(self.URL + '?level=' + str(self.difficulty))
+        """Pull a Websudoku puzzle from the URL with this instance's difficulty, returning the HTML."""
+        puzzle_page = urllib2.urlopen(self.URL + self.difficulty_level_str + str(self.difficulty))
         puzzle_regex = re.compile('<TABLE.*?>(<TR>(<TD.*?><INPUT.*?></TD>){9}</TR>){9}</TABLE>', re.IGNORECASE)
         puzzle_HTML = ''
 
@@ -85,7 +97,9 @@ class Websudoku:
             raise PuzzleParseError, ('Unable to pull a valid HTML representation of a sudoku puzzle',)
         return puzzle_HTML
 
+
     def sudoku_html_to_list(self, html_str):
+        """Convert sudoku puzzle from HTML to a list matrix and return the list."""
         empty_regex = re.compile('<INPUT.*?onBlur.*?>', re.IGNORECASE)
         full_regex = re.compile('<INPUT.*?READONLY VALUE="(\d)".*?>', re.IGNORECASE)
 
@@ -125,7 +139,12 @@ class Websudoku:
 
 
     def store_puzzle(self, puzzle_name=None):
-        """Store this instance's puzzle in the datastore."""
+        """Store this instance's puzzle in the datastore.
+
+        Keyword arguments:
+        puzzle_name -- used to generate a key for the datastore (default None)
+
+        """
         #Convert puzzle into nine 9-character strings for storage
         entity_row = []
         for row in self.puzzle:
