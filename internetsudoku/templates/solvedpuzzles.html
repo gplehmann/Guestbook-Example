@@ -3,56 +3,7 @@
         <center>
 Latest (un)Solved Puzzles:
         {% for puzzle in puzzles %}
-            <table border="1" cellspacing="0">
-              <tr><th colspan="9">Solved <b>{{ puzzle.date }}</b></th></tr>
-              <tr><th colspan="9">Difficulty: <b>{{ puzzle.difficulty }}</b></th></tr>
-              <tr>
-              {% for number in puzzle.row_1 %}
-                <td align="center">{{ number }}</td>
-              {% endfor %}
-              </tr>
-              <tr>
-              {% for number in puzzle.row_2 %}
-                <td align="center">{{ number }}</td>
-              {% endfor %}
-              </tr>
-              <tr>
-              {% for number in puzzle.row_3 %}
-                <td align="center">{{ number }}</td>
-              {% endfor %}
-              </tr>
-              <tr>
-              {% for number in puzzle.row_4 %}
-                <td align="center">{{ number }}</td>
-              {% endfor %}
-              </tr>
-              <tr>
-              {% for number in puzzle.row_5 %}
-                <td align="center">{{ number }}</td>
-              {% endfor %}
-              </tr>
-              <tr>
-              {% for number in puzzle.row_6 %}
-                <td align="center">{{ number }}</td>
-              {% endfor %}
-              </tr>
-              <tr>
-              {% for number in puzzle.row_7 %}
-                <td align="center">{{ number }}</td>
-              {% endfor %}
-              </tr>
-              <tr>
-              {% for number in puzzle.row_8 %}
-                <td align="center">{{ number }}</td>
-              {% endfor %}
-              </tr>
-              <tr>
-              {% for number in puzzle.row_9 %}
-                <td align="center">{{ number }}</td>
-              {% endfor %}
-              </tr>
-            </table>
-          <br/>
+            {{ puzzle }}
         {% endfor %}
         </center>
     </body>

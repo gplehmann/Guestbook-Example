@@ -6,7 +6,6 @@ api_version: 1
 handlers:
 - url: /getpuzzle
   script: internetsudoku.py
-  login: admin
 
 - url: /.*
   script: internetsudoku.py

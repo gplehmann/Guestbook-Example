@@ -20,17 +20,7 @@ class Puzzle(db.Model):
 
     """
     URL = db.StringProperty()
-    #Because of the limitations of templates, it's easier to store the puzzle as
-    #9 separate rows instead of as one 81-character string
-    row_1 = db.StringProperty()
-    row_2 = db.StringProperty()
-    row_3 = db.StringProperty()
-    row_4 = db.StringProperty()
-    row_5 = db.StringProperty()
-    row_6 = db.StringProperty()
-    row_7 = db.StringProperty()
-    row_8 = db.StringProperty()
-    row_9 = db.StringProperty()
+    puzzle_string = db.StringProperty()
     difficulty = db.StringProperty()
     date = db.DateTimeProperty(auto_now_add=True)
 
@@ -45,6 +35,8 @@ def puzzle_key(puzzle_name=None):
 
 class MainPage(webapp.RequestHandler):
     """Displays the last three solved puzzles"""
+    MEMCACHE_TIMEOUT = 60
+    MEMCACHE_KEY = 'puzzles'
     def get(self):
         logging.info('Request for recently solved puzzles received.')
         puzzles = self.__get_data()
@@ -63,14 +55,31 @@ class MainPage(webapp.RequestHandler):
         memcache for 10 minutes.
         
         """
-        puzzles = memcache.get("puzzles")
-        if puzzles:
-            return puzzles
+        puzzles_html = memcache.get(self.MEMCACHE_KEY)
+        if puzzles_html:
+            logging.info('Retrieved puzzles from Memcache.')
+            return puzzles_html
         else:
             puzzles = Puzzle.all().ancestor(puzzle_key()).order('-date').fetch(3)
-            if not memcache.add("puzzles", puzzles, 600):
+            puzzles_html = []
+            for puzzle in puzzles:
+                puzzles_html_str = '<table border="1" cellspacing="0"><tr><th colspan="9">Solved <b>%s</b></th></tr> \
+<tr><th colspan="9">Difficulty: <b>%s</b></th></tr>' % (puzzle.date, puzzle.difficulty)
+                counter = 0
+                for cell in puzzle.puzzle_string:
+                    if counter % 9 == 0: #we're at the start of a new row
+                        puzzles_html_str += '<tr>'
+                    puzzles_html_str += '<td align="center">%s</td>' % cell
+                    if counter % 9 == 8: #we're at the end of a row
+                        puzzles_html_str += '</tr>'
+                    counter += 1
+                puzzles_html_str += '</table><br/>'
+                puzzles_html.append(puzzles_html_str)
+
+            logging.info('Caching puzzle html.')
+            if not memcache.add(self.MEMCACHE_KEY, puzzles_html, self.MEMCACHE_TIMEOUT):
                 logging.error("Memcache set failed.")
-            return puzzles
+            return puzzles_html
 
 
 class GetPuzzle(webapp.RequestHandler):
@@ -182,11 +191,10 @@ class Websudoku:
         logging.info('Storing puzzle in the datastore.')
         #Convert puzzle into nine 9-character strings for storage
         entity_row = []
+        puzzle_string = ''
         for row in self.puzzle:
-            row_str = ''
             for number in row:
-                row_str += str(number)
-            entity_row.append(str(row_str).strip("[],' "))
+                puzzle_string += str(number)
 
         #Convert the numeric difficulty to a string
         if self.difficulty == 1:
@@ -201,15 +209,7 @@ class Websudoku:
             str_difficulty = 'UNKNOWN'
             
         puzzle_entity = Puzzle(parent=puzzle_key(puzzle_name))
-        puzzle_entity.row_1 = entity_row[0]
-        puzzle_entity.row_2 = entity_row[1]
-        puzzle_entity.row_3 = entity_row[2]
-        puzzle_entity.row_4 = entity_row[3]
-        puzzle_entity.row_5 = entity_row[4]
-        puzzle_entity.row_6 = entity_row[5]
-        puzzle_entity.row_7 = entity_row[6]
-        puzzle_entity.row_8 = entity_row[7]
-        puzzle_entity.row_9 = entity_row[8]
+        puzzle_entity.puzzle_string = puzzle_string
         puzzle_entity.difficulty = str_difficulty
         puzzle_entity.put()
 
